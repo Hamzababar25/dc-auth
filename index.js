@@ -1,3 +1,5 @@
+process.exit(0);
+
 const { chromium } = require('playwright');
 
 const N8N_WEBHOOK = 'https://n8n.hireme-not.com/webhook/update-cookies';
