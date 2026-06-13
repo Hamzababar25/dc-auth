@@ -14,6 +14,7 @@ const chromePaths = [
   path.join(os.homedir(), '.config/google-chrome/Profile 1/Cookies'),
 ];
 
+
 let cookieDb = null;
 for (const p of chromePaths) {
   if (fs.existsSync(p)) {
