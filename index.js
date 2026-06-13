@@ -31,9 +31,8 @@ async function getFreshCookies() {
   const page = await context.newPage();
 
   try {
-    await page.goto(DEALERCENTER_URL, { waitUntil: 'domcontentloaded' });
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.goto(DEALERCENTER_URL, { waitUntil: 'load', timeout: 60000 });
+    await page.waitForTimeout(3000);
 
     if (page.url().includes('auth.dealercenter.net') || page.url().includes('/u/login')) {
       throw new Error('Session expired or MFA required. Recreate DC_SESSION manually.');
