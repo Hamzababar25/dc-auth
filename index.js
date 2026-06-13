@@ -73,28 +73,31 @@ async function getFreshCookies() {
 
   try {
     await page.goto(DEALERCENTER_URL, { waitUntil: 'load', timeout: 60000 });
-    await page.waitForTimeout(4000);
 
     if (page.url().includes('auth.dealercenter.net') || page.url().includes('/u/login')) {
       throw new Error('Session expired or MFA required. Update DC_SESSION_B64 in Railway.');
     }
 
-    let cookies = await context.cookies();
-    let xsrfToken = cookies.find(c => c.name === 'XSRF-TOKEN')?.value;
-
-    // XSRF not set yet — reload once to let DealerCenter set it
-    if (!xsrfToken) {
-      console.log('XSRF-TOKEN missing, reloading page...');
-      await page.reload({ waitUntil: 'load', timeout: 60000 });
-      await page.waitForTimeout(4000);
-      cookies = await context.cookies();
+    // Poll for XSRF-TOKEN — Angular sets it after JS execution (up to 30s)
+    let xsrfToken = null;
+    for (let i = 0; i < 12; i++) {
+      await page.waitForTimeout(3000);
+      const cookies = await context.cookies();
       xsrfToken = cookies.find(c => c.name === 'XSRF-TOKEN')?.value;
+      if (xsrfToken) {
+        console.log(`XSRF-TOKEN found after ${(i + 1) * 3}s`);
+        break;
+      }
+      console.log(`Waiting for XSRF-TOKEN... (${(i + 1) * 3}s)`);
     }
 
+    const cookies = await context.cookies();
     const cookieString = cookies.map(c => `${c.name}=${c.value}`).join('; ');
 
-    if (!cookieString || !xsrfToken) {
-      throw new Error('Could not extract XSRF token even after reload. Check session validity.');
+    if (!xsrfToken) {
+      // Log all cookie names to help debug
+      console.log('Available cookies:', cookies.map(c => c.name).join(', '));
+      throw new Error('XSRF-TOKEN not set after 36s. Session may be invalid.');
     }
 
     console.log('Cookies obtained. XSRF present:', Boolean(xsrfToken));
