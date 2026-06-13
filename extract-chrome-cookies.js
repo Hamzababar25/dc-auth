@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+
 // Chrome cookie database paths (Linux)
 const chromePaths = [
   path.join(os.homedir(), '.config/google-chrome/Default/Cookies'),
